@@ -8,8 +8,15 @@ The only thing to do is configure the ANTLR plugin to generate code
 1. Open ANTLR4 plugging settings  
 ![Imgur](https://i.imgur.com/zxSOvkb.png)
   
-2. Put this  
+2. Copy exactly the following fields, use this image as a guide  
 ![Imgur](https://i.imgur.com/TJflg2Q.png)
+
+   Copy and paste **these fields**
+```
+    output directory where all the output is generated | {base}\erlapi\src\main\java 
+    namespace for generated code                       | com.myerlang.erlapi.gen   
+```
+
 
 3. That's it! :facepunch:
 
