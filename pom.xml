@@ -49,6 +49,15 @@
 			<artifactId>antlr4</artifactId>
 			<version>4.8</version>
 		</dependency>
+		<!--
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4</artifactId>
+			<version>4.8</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/jar/antlr-4.8-complete.jar</systemPath>
+		</dependency>
+		-->
 	</dependencies>
 
 	<build>
