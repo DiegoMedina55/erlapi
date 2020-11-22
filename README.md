@@ -1,6 +1,6 @@
-Api REST for the programing language course 2020-2
+:boom: Api REST for the final project of PL class 2020-2
 
-### Setting up intelliJ IDEA
+### :gear: Setting up intelliJ IDEA
 This project uses the ANTLR 4 dependency in maven so there's no need to **manually import** ANTLR runtime file.  
 
 The only thing to do is configure the ANTLR plugin to generate code
@@ -11,7 +11,7 @@ The only thing to do is configure the ANTLR plugin to generate code
 2. Put this  
 ![Imgur](https://i.imgur.com/TJflg2Q.png)
 
-3. That's it!
+3. That's it! :facepunch:
 
 ### :rocket: Heroku Deployment
 
@@ -42,3 +42,4 @@ To save you the trouble, here's the link :  https://immense-river-16385.herokuap
 I also ran into some troubles installing CLI
 1. needed to [delete node js file](https://stackoverflow.com/questions/32853495/heroku-cli-error)
 
+Made with :purple_heart:
