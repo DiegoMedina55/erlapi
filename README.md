@@ -5,10 +5,10 @@ This project uses the ANTLR 4 dependency in maven so there's no need to **manual
 
 The only thing to do is configure the ANTLR plugin to generate code
 
-1. Open ANTLR4 plugging settings
+1. Open ANTLR4 plugging settings  
 ![Imgur](https://i.imgur.com/zxSOvkb.png)
   
-2. Put this
+2. Put this  
 ![Imgur](https://i.imgur.com/TJflg2Q.png)
 
 3. That's it!
