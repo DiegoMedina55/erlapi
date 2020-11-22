@@ -1,5 +1,8 @@
 :boom: Api REST for the final project of PL class 2020-2
 
+This proyect was created using [spring initializr](https://start.spring.io/) according to [this guide](https://medium.com/swlh/build-deploy-a-rest-api-from-scratch-using-spring-boot-and-aws-ecs-eb369137a020)
+
+
 ### :gear: Setting up intelliJ IDEA
 This project uses the ANTLR 4 dependency in maven so there's no need to **manually import** ANTLR runtime file.  
 
