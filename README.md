@@ -13,7 +13,7 @@ The only thing to do is configure the ANTLR plugin to generate code
 
 3. That's it!
 
-###  Heroku Deployment
+### :rocket: Heroku Deployment
 
 I followed this [heroku guide](https://devcenter.heroku.com/articles/deploying-spring-boot-apps-to-heroku) 
 
