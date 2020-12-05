@@ -4,22 +4,28 @@ package com.myerlang.erlapi.logic; /**
  * @Author Santiago Duque Bernal              saduquebe@unal.edu.co
  * @Author Juan Diego Medina Naranjo          jmedinan@unal.edu.co
  */
-
-import com.myerlang.erlapi.gen.BccLanguageBaseVisitor;
-import com.myerlang.erlapi.gen.BccLanguageParser;
+import com.myerlang.erlapi.gen.ErlangBaseVisitor;
+import com.myerlang.erlapi.gen.ErlangParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Stack;
 
-public class MyVisitor<T> extends BccLanguageBaseVisitor {
+public class MyVisitor<T> extends ErlangBaseVisitor {
     Stack <HashMap<String, Object>> scopes = new Stack<>();
-    HashMap<String, BccLanguageParser.Fn_decl_listContext> functions = new HashMap<>();
+    // HashMap<String, BccLanguageParser.Fn_decl_listContext> functions = new HashMap<>();
     String printing = "";
     Boolean tk_break = false;
     Boolean tk_next = false;
 
+    @Override
+    public Object visitFunction(ErlangParser.FunctionContext ctx) {
+        System.out.println("here");
+        return super.visitFunction(ctx);
+    }
+
+    /**
     @Override
     public T visitProg(BccLanguageParser.ProgContext ctx) {
         scopes.push(new HashMap<String, Object>());
@@ -488,5 +494,5 @@ public class MyVisitor<T> extends BccLanguageBaseVisitor {
         scopes.pop();
         return result;
     }
-
+    **/
 }

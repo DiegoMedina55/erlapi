@@ -1,0 +1,7 @@
+-export(start/0).
+
+atom_map2(one) -> 1;
+atom_map2(two) -> 2.
+
+start()->
+    io:write(hello).
