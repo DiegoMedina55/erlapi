@@ -194,7 +194,11 @@ recordTuple : '{' recordFields? '}' ;
 recordFields : recordField (',' recordField)* ;
 recordField : (tokVar | tokAtom) '=' expr ;
 /* N.B. This is called from expr700. */
-functionCall : expr800 argumentList ;
+functionCall : expr800 argumentList
+             | PRINT '(' expr ')'                           /* Gabriel */
+             | PRINT '(' TokString ',' '[' exprs ']' ')';   /* Gabriel */
+PRINT : 'io:fwrite';                                        /* Gabriel */
+
 ifExpr : 'if' ifClauses 'end' ;
 ifClauses : ifClause (';' ifClause)* ;
 ifClause : guard clauseBody ;

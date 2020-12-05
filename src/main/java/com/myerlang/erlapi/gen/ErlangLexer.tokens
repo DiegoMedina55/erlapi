@@ -70,6 +70,7 @@ TokString=69
 AttrName=70
 Comment=71
 WS=72
+PRINT=73
 '.'=1
 '-'=2
 '('=3
@@ -133,3 +134,4 @@ WS=72
 '=:='=61
 '=/='=62
 ':-'=63
+'io:fwrite'=73

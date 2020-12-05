@@ -13,16 +13,86 @@ import java.util.Scanner;
 import java.util.Stack;
 
 public class MyVisitor<T> extends ErlangBaseVisitor {
+    String startFunctionName = "start";
     Stack <HashMap<String, Object>> scopes = new Stack<>();
-    // HashMap<String, BccLanguageParser.Fn_decl_listContext> functions = new HashMap<>();
-    String printing = "";
-    Boolean tk_break = false;
-    Boolean tk_next = false;
+    HashMap<String, ErlangFunction> functions = new HashMap<>();
 
     @Override
-    public Object visitFunction(ErlangParser.FunctionContext ctx) {
+    public T visitForms(ErlangParser.FormsContext ctx) {
+        super.visitForms(ctx);
+
+        // llamar a start()
+        ErlangFunction start = functions.get(startFunctionName);
+        if (start == null) {
+            // Error: no se definio start
+        }
+
+        scopes.push(new HashMap<String, Object>()); // primer scope
+        ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
+        visitClauseBody(startClause.getCtx().clauseBody());
+        return null;
+    }
+
+    @Override
+    public T visitFunction(ErlangParser.FunctionContext ctx) {
+        ErlangFunctionClause firstClause = (ErlangFunctionClause) visitFunctionClause(ctx.functionClause(0));
+        String functionName = firstClause.getFunctionName();
+        int params = firstClause.getNumParameters();
+        ArrayList<ErlangFunctionClause> clauses = new ArrayList<>();
+        clauses.add(firstClause);
+
+        for (int i = 1; i < ctx.functionClause().size(); i++){
+            ErlangFunctionClause clause = (ErlangFunctionClause) visitFunctionClause(ctx.functionClause(i));
+            if (clause.getNumParameters() != params) {
+                // Error: las clausulas deben tener mismo numero de params
+            }
+            if (!clause.getFunctionName().equals(functionName)) {
+                // Error: las clausulas deben tener mismo nombre
+            }
+            clauses.add(clause);
+        }
+
+        ErlangFunction function = functions.get(functionName);
+        if (function == null) { // funcion no existe aun
+            function = new ErlangFunction(functionName);
+            functions.put(functionName, function);
+        }
+        function.addClauses(params, clauses);
+        return null;
+    }
+
+    @Override
+    public T visitFunctionClause(ErlangParser.FunctionClauseContext ctx) {
+        String functionName = (String) visitTokAtom(ctx.tokAtom());
+        ErlangParser.ExprsContext exprs = ctx.clauseArgs().argumentList().exprs();
+        int numParams = (exprs == null) ? 0 : exprs.expr().size();
+        ErlangFunctionClause efc = new ErlangFunctionClause(functionName, numParams, ctx);
+        return (T) efc;
+    }
+
+    @Override
+    public T visitTokAtom(ErlangParser.TokAtomContext ctx) {
+        return (T) ctx.TokAtom().toString();
+    }
+
+    @Override
+    public T visitFunctionCall(ErlangParser.FunctionCallContext ctx) {
+        if (ctx.PRINT() != null){
+            System.out.println("here");
+            return print(ctx);
+        }
+        Datatype dt = new Datatype(0, Datatype.Type.DOUBLE);
+        return (T) dt;
+    }
+
+    public T print (ErlangParser.FunctionCallContext ctx) {
         System.out.println("here");
-        return super.visitFunction(ctx);
+        if (ctx.expr() != null) {
+            Datatype value = (Datatype) visitExpr(ctx.expr());
+            System.out.println(value);
+        }
+        Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
+        return (T) dt;
     }
 
     /**

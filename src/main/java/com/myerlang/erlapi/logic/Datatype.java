@@ -11,10 +11,18 @@ public class Datatype {
     enum Type {
         BOOLEAN,
         DOUBLE,
+        ATOM,
+        STRING,
+        LIST
     }
 
     private Object value;
     private Type type;
+
+    public Datatype(Object value, Type type) {
+        this.value = value;
+        this.type = type;
+    }
 
     public Type getType() {
         return type;
@@ -33,5 +41,10 @@ public class Datatype {
             this.value = Utils.castToBoolean(value);
         else
             this.value = Utils.castToDouble(value);
+    }
+
+    @Override
+    public String toString() {
+        return value.toString();
     }
 }
