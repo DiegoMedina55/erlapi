@@ -23,7 +23,12 @@ The only thing to do is configure the ANTLR plugin to generate code
 
 3. That's it! :facepunch:
 
-### :rocket: Heroku Deployment
+### :rocket: Heroku Continious Deployment (New version)
+
+Everything on `master` will be deployed on the server. **Never** commit changes that you now won't work  
+Commit developing changes on `develop`, remember never use `master` or I'll cut your balls :scissors: .
+
+### :rocket: Heroku Deployment (Old version)
 
 I followed this [heroku guide](https://devcenter.heroku.com/articles/deploying-spring-boot-apps-to-heroku) 
 
