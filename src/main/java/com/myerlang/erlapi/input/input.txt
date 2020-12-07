@@ -4,4 +4,6 @@ atom_map2(one) -> 1;
 atom_map2(two) -> 2.
 
 start()->
-    io:fwrite(1).
+    N = 5.5,
+    A = N,
+    io:fwrite(A).

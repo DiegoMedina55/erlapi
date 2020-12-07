@@ -18,6 +18,8 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     Stack <HashMap<String, Object>> scopes = new Stack<>();
     HashMap<String, ErlangFunction> functions = new HashMap<>();
 
+    boolean isAssignToVariable = false;
+
     @Override
     public T visitForms(ErlangParser.FormsContext ctx) {
         super.visitForms(ctx);
@@ -107,6 +109,39 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         }
         Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
         return (T) dt;
+    }
+
+    @Override
+    public T visitExpr100(ErlangParser.Expr100Context ctx) {
+        if (ctx.expr150().size() == 1) {
+            return (T) visitExpr150(ctx.expr150(0));
+        }
+        // Ejemplo N = 5;
+        isAssignToVariable = true;
+        // Objeto 'variable' en scope, actualizar aqui se actualiza el valor de la variable
+        Datatype variable = (Datatype) visitExpr150(ctx.expr150(0));
+        isAssignToVariable = false;
+        Datatype value = (Datatype) visitExpr150(ctx.expr150(1));
+        variable.setType(value.getType());
+        variable.setValue(value.getValue());
+        return (T) value;
+    }
+
+    @Override
+    public Object visitTokVar(ErlangParser.TokVarContext ctx) {
+        String variableName = ctx.TokVar().getText();
+        if (isAssignToVariable) {
+            if (this.scopes.peek().get(variableName) != null) {
+                // Error, variable ya existe
+            }
+            Datatype emptyDataType = new Datatype();
+            this.scopes.peek().put(variableName, emptyDataType);
+            return emptyDataType;
+        }
+        if (this.scopes.peek().get(variableName) == null) {
+            // Error: la variable no existe
+        }
+        return this.scopes.peek().get(variableName);
     }
 
     /**

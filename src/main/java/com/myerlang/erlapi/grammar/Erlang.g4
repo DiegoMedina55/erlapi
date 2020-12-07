@@ -130,7 +130,8 @@ clauseGuard : ('when' guard)? ;
 clauseBody : '->' exprs ;
 expr : 'catch' expr
      | expr100 ;
-expr100 : expr150 (('=' | '!') expr150)* ;
+expr100 : expr150 ((TokIgual | '!') expr150)* ;
+TokIgual : '=';
 expr150 : expr160 ('orelse' expr160)* ;
 expr160 : expr200 ('andalso' expr200)* ;
 expr200 : expr300 (compOp expr300)? ;

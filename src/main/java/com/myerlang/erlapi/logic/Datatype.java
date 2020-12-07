@@ -23,6 +23,7 @@ public class Datatype {
         this.value = value;
         this.type = type;
     }
+    public Datatype() {}
 
     public Type getType() {
         return type;
@@ -37,10 +38,7 @@ public class Datatype {
     }
 
     public void setValue(Object value) {
-        if (type == Type.BOOLEAN)
-            this.value = Utils.castToBoolean(value);
-        else
-            this.value = Utils.castToDouble(value);
+        this.value = value;
     }
 
     @Override
