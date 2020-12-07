@@ -7,6 +7,7 @@ package com.myerlang.erlapi.logic; /**
 import com.myerlang.erlapi.gen.ErlangBaseVisitor;
 import com.myerlang.erlapi.gen.ErlangParser;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -63,7 +64,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
     @Override
     public T visitFunctionClause(ErlangParser.FunctionClauseContext ctx) {
-        String functionName = (String) visitTokAtom(ctx.tokAtom());
+        String functionName = ((Datatype) visitTokAtom(ctx.tokAtom())).toString();
         ErlangParser.ExprsContext exprs = ctx.clauseArgs().argumentList().exprs();
         int numParams = (exprs == null) ? 0 : exprs.expr().size();
         ErlangFunctionClause efc = new ErlangFunctionClause(functionName, numParams, ctx);
@@ -72,13 +73,27 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
     @Override
     public T visitTokAtom(ErlangParser.TokAtomContext ctx) {
-        return (T) ctx.TokAtom().toString();
+        Datatype dt = new Datatype(ctx.TokAtom().toString(), Datatype.Type.ATOM);
+        return (T) dt;
+    }
+
+    @Override
+    public Object visitTokFloat(ErlangParser.TokFloatContext ctx) {
+        Double number = Double.parseDouble(ctx.TokFloat().getText());
+        Datatype dt = new Datatype(number, Datatype.Type.DOUBLE);
+        return (T) dt;
+    }
+
+    @Override
+    public Object visitTokInteger(ErlangParser.TokIntegerContext ctx) {
+        Double number = Double.parseDouble(ctx.TokInteger().getText());
+        Datatype dt = new Datatype(number, Datatype.Type.DOUBLE);
+        return (T) dt;
     }
 
     @Override
     public T visitFunctionCall(ErlangParser.FunctionCallContext ctx) {
         if (ctx.PRINT() != null){
-            System.out.println("here");
             return print(ctx);
         }
         Datatype dt = new Datatype(0, Datatype.Type.DOUBLE);
@@ -86,10 +101,9 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     }
 
     public T print (ErlangParser.FunctionCallContext ctx) {
-        System.out.println("here");
         if (ctx.expr() != null) {
             Datatype value = (Datatype) visitExpr(ctx.expr());
-            System.out.println(value);
+            System.out.println(value.getValue());
         }
         Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
         return (T) dt;
