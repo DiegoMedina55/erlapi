@@ -1,5 +1,7 @@
 package com.myerlang.erlapi.logic;
 
+import javax.xml.crypto.Data;
+
 /**
  * Memebers:
  * @Author Gabriel Andres Avendaño Casadiego  gavendanoc@unal.edu.co
@@ -13,7 +15,8 @@ public class Datatype {
         DOUBLE,
         ATOM,
         STRING,
-        LIST
+        LIST,
+        VARIABLE_NAME,
     }
 
     private Object value;
@@ -41,8 +44,18 @@ public class Datatype {
         this.value = value;
     }
 
+    public boolean isVariable(){
+        return type == Type.VARIABLE_NAME;
+    }
+
     @Override
     public String toString() {
-        return value.toString();
+        return type + ":" + value.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Datatype other = (Datatype) obj;
+        return value.equals(other.getValue());
     }
 }

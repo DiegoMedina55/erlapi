@@ -16,9 +16,13 @@ public class Analysis {
         try{
             ErlangLexer lexer;
             lexer = new ErlangLexer(CharStreams.fromString(code));
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
 
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             ErlangParser parser = new ErlangParser(tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(ThrowingErrorListener.INSTANCE);
             ParseTree tree = parser.forms();
 
             MyVisitor<Object> loader = new MyVisitor<Object>();

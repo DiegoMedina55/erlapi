@@ -14,15 +14,20 @@ package com.myerlang.erlapi.logic;
 
 import com.myerlang.erlapi.gen.ErlangParser;
 
+import java.util.List;
+
 public class ErlangFunctionClause {
     String functionName;
     Integer numParameters;
     ErlangParser.FunctionClauseContext ctx;
+    ErlangParser.ExprsContext arguments;
 
     public ErlangFunctionClause(String functionName, Integer numParameters, ErlangParser.FunctionClauseContext ctx) {
         this.functionName = functionName;
         this.numParameters = numParameters;
         this.ctx = ctx;
+        this.arguments = ctx.clauseArgs().argumentList().exprs();
+
     }
 
     public String getFunctionName() {
@@ -47,5 +52,9 @@ public class ErlangFunctionClause {
 
     public void setCtx(ErlangParser.FunctionClauseContext ctx) {
         this.ctx = ctx;
+    }
+
+    public ErlangParser.ExprsContext getArguments() {
+        return arguments;
     }
 }

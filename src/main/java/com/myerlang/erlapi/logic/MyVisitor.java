@@ -19,6 +19,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     HashMap<String, ErlangFunction> functions = new HashMap<>();
 
     boolean isAssignToVariable = false;
+    boolean isGettingVariableName = false;
 
     @Override
     public T visitForms(ErlangParser.FormsContext ctx) {
@@ -28,6 +29,8 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         ErlangFunction start = functions.get(startFunctionName);
         if (start == null) {
             // Error: no se definio start
+            System.out.println("Error: no se definio start");
+            System.exit(-1);
         }
 
         scopes.push(new HashMap<String, Object>()); // primer scope
@@ -48,9 +51,13 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             ErlangFunctionClause clause = (ErlangFunctionClause) visitFunctionClause(ctx.functionClause(i));
             if (clause.getNumParameters() != params) {
                 // Error: las clausulas deben tener mismo numero de params
+                System.out.println("Error: las clausulas deben tener mismo numero de params");
+                System.exit(-1);
             }
             if (!clause.getFunctionName().equals(functionName)) {
                 // Error: las clausulas deben tener mismo nombre
+                System.out.println("Error: las clausulas deben tener mismo nombre");
+                System.exit(-1);
             }
             clauses.add(clause);
         }
@@ -66,7 +73,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
     @Override
     public T visitFunctionClause(ErlangParser.FunctionClauseContext ctx) {
-        String functionName = ((Datatype) visitTokAtom(ctx.tokAtom())).toString();
+        String functionName = ((Datatype) visitTokAtom(ctx.tokAtom())).getValue().toString();
         ErlangParser.ExprsContext exprs = ctx.clauseArgs().argumentList().exprs();
         int numParams = (exprs == null) ? 0 : exprs.expr().size();
         ErlangFunctionClause efc = new ErlangFunctionClause(functionName, numParams, ctx);
@@ -94,24 +101,6 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     }
 
     @Override
-    public T visitFunctionCall(ErlangParser.FunctionCallContext ctx) {
-        if (ctx.PRINT() != null){
-            return print(ctx);
-        }
-        Datatype dt = new Datatype(0, Datatype.Type.DOUBLE);
-        return (T) dt;
-    }
-
-    public T print (ErlangParser.FunctionCallContext ctx) {
-        if (ctx.expr() != null) {
-            Datatype value = (Datatype) visitExpr(ctx.expr());
-            System.out.println(value.getValue());
-        }
-        Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
-        return (T) dt;
-    }
-
-    @Override
     public T visitExpr100(ErlangParser.Expr100Context ctx) {
         if (ctx.expr150().size() == 1) {
             return (T) visitExpr150(ctx.expr150(0));
@@ -130,7 +119,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     @Override
     public Object visitTokVar(ErlangParser.TokVarContext ctx) {
         String variableName = ctx.TokVar().getText();
-        if (isAssignToVariable) {
+        if (isAssignToVariable) { // For assigning value
             if (this.scopes.peek().get(variableName) != null) {
                 // Error, variable ya existe
             }
@@ -138,10 +127,141 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             this.scopes.peek().put(variableName, emptyDataType);
             return emptyDataType;
         }
+        if (isGettingVariableName) { // For pattern matching
+            return new Datatype(variableName, Datatype.Type.VARIABLE_NAME);
+        }
         if (this.scopes.peek().get(variableName) == null) {
             // Error: la variable no existe
+            System.out.println("Error: la variable no existe");
+            System.exit(-1);
         }
-        return this.scopes.peek().get(variableName);
+        return this.scopes.peek().get(variableName); // For getting value from variable
+    }
+
+    @Override
+    public T visitFunctionCall(ErlangParser.FunctionCallContext ctx) {
+        if (ctx.PRINT() != null){
+            return print(ctx);
+        }
+        String functionName = ((Datatype) visitExpr800(ctx.expr800())).getValue().toString();
+        ErlangFunction erfunction = functions.get(functionName);
+        if (erfunction == null) {
+            // Error: Funcion no existe
+            System.out.println("Error: Funcion no existe");
+            System.exit(-1);
+        }
+        return patternMatching(ctx, erfunction);
+    }
+
+    public T print (ErlangParser.FunctionCallContext ctx) {
+        if (ctx.expr() != null) {
+            Datatype value = (Datatype) visitExpr(ctx.expr());
+            System.out.println(value.getValue());
+        }
+
+        Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
+        return (T) dt;
+    }
+
+    private T patternMatching (ErlangParser.FunctionCallContext callCtx , ErlangFunction function) {
+        System.out.println("patternMatching");
+        int parameters = callCtx.argumentList().exprs().expr().size();
+        ArrayList<ErlangFunctionClause> clauses = function.getClausesOfParams(parameters);
+        System.out.println(function.getAllClauses());
+
+        if (clauses == null) {
+            System.out.println("Error : No existe clausula con esa cantidad de parametros");
+            System.exit(-1);
+        }
+
+        ArrayList<Datatype> parameterValues = new ArrayList<>();
+        for (int i = 0; i < parameters ; i++) {
+            parameterValues.add((Datatype) visitExpr(callCtx.argumentList().exprs().expr().get(i)));
+        }
+
+        int selected = 0;
+        ArrayList<Datatype> arguments = matchClauseWithCallingCtx(parameterValues, clauses.get(selected));
+        while(arguments == null) {
+            selected++;
+            if (selected >= clauses.size()){
+                System.out.println("Error : No se pudo hacer patterns matching");
+                System.exit(-1);
+            }
+            arguments = matchClauseWithCallingCtx(parameterValues, clauses.get(selected));
+        }
+        return callFunction(parameterValues, arguments, clauses.get(selected));
+    }
+
+    private T callFunction(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, ErlangFunctionClause clause) {
+        int parameters = parameterValues.size();
+        scopes.push(new HashMap<String, Object>());
+        // añadiendo los parametros al scope
+        for (int i = 0; i < parameters; i++){
+            if (arguments.get(i).isVariable()){
+                String variableName = arguments.get(i).getValue().toString();
+                scopes.peek().put(variableName, parameterValues.get(i));
+            }
+        }
+        Object result = visitClauseBody(clause.getCtx().clauseBody());
+        scopes.pop();
+        return (T) result;
+        /*
+        // revisar si la cantidad de parametros es correcta
+        if (parameters != ctxFc.lexpr().size()){
+            String name = ctxFn.FID().getText();
+            int line = ctxFc.FID().getSymbol().getLine();
+            int col = ctxFc.FID().getSymbol().getCharPositionInLine() + 1;
+            System.err.printf("<%d:%d> Error semántico, los parametros dados a la funcion: " + name + " no corresponden con su declaracion.",line,col);
+            System.exit(-1);
+        }
+
+        // Retornar si el statement vacio
+        if (ctxFn.stmt_block() == null) {
+            return (T) (Double) 0.0;
+        }
+
+        ArrayList<T> parameterValues = new ArrayList<>();
+        for (int i = 0; i < parameters; i++){
+            parameterValues.add(visitLexpr(ctxFc.lexpr(i)));
+        }
+
+        scopes.push(new HashMap<String, Object>());
+        // añadiendo parametros al scope
+        for (int i = 0; i < parameters; i++){
+            String paramName = ctxFn.PARAMS.ID(i).getText();
+            T value = parameterValues.get(i);
+            Datatype type = new Datatype();
+            if (ctxFn.PARAMS.DATATYPE(i).getText().equals("num")) {
+                type.setType(Datatype.Type.DOUBLE);
+            } else {
+                type.setType(Datatype.Type.BOOLEAN);
+            }
+            type.setValue(value);
+            scopes.peek().put(paramName, type);
+        }
+        if (ctxFn.LOCAL_VAR != null) visitVar_decl(ctxFn.LOCAL_VAR);
+        T result = visitStmt_block(ctxFn.stmt_block());
+        if (result == null){
+            result = (T) (Double) 0.0; // si no hay resultado, se retorna el default
+        }
+        scopes.pop();
+        return result;*/
+    }
+
+    private ArrayList<Datatype> matchClauseWithCallingCtx(ArrayList<Datatype> parameterValues, ErlangFunctionClause clause){
+        int parameters = clause.getNumParameters();
+        ArrayList<Datatype> arguments = new ArrayList<>();
+        System.out.println("matchClauseWithCallingCtx");
+        for (int i = 0; i < parameters ; i++) {
+            isGettingVariableName = true;
+            Datatype argument = (Datatype) visitExpr(clause.getArguments().expr().get(i));
+            isGettingVariableName = false;
+            if (! argument.isVariable() && ! argument.equals(parameterValues.get(i))){
+                return null;
+            }
+            arguments.add(argument);
+        }
+        return arguments;
     }
 
     /**
