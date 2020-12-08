@@ -1,11 +1,16 @@
 -export(start/0).
 
-atom_map2(one, Three) -> io:fwrite(Three).
-atom_map2(two) -> 2;
-atom_map2(one) -> 5.
+
+a(one) -> 1;
+a(two) -> 2.
+
+a() -> 4.
 
 start()->
     N = 5.5,
     A = N,
-    atom_map2(one, N),
-    io:fwrite(A).
+    io:fwrite("miren esta elegancia"),
+    io:fwrite(a()),
+    io:fwrite(a(one)),
+    io:fwrite(a(two)),
+    io:fwrite(a(twoo)).
