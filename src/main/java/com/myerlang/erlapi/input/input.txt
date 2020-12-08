@@ -1,16 +1,14 @@
 -export(start/0).
 
-
-a(one) -> 1;
-a(two) -> 2.
-
-a() -> 4.
+b(two, Var) -> io:fwrite(two), io:fwrite(Var);
+b(one, Var) -> io:fwrite(one), io:fwrite(Var).
+b(two) -> io:fwrite(two).
 
 start()->
     N = 5.5,
     A = N,
     io:fwrite("miren esta elegancia"),
-    io:fwrite(a()),
-    io:fwrite(a(one)),
-    io:fwrite(a(two)),
-    io:fwrite(a(twoo)).
+    io:fwrite(b(one, 5)),
+    io:fwrite(b(two, 5)),
+    io:fwrite(b(two)),
+    io:fwrite(b(three)).
