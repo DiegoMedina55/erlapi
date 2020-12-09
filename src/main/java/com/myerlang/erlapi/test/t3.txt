@@ -10,7 +10,7 @@ comparingNumbers() ->
 
 comparingStrings() ->
     io:fwrite("string" == "string"),
-    io:fwrite("string" == string). % los atomos NO son strings
+    io:fwrite("string" == string). % los atomos no son strings
 
 start()->
     comparingAtoms(),
