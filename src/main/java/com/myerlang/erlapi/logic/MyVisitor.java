@@ -1,4 +1,5 @@
-package com.myerlang.erlapi.logic; /**
+package com.myerlang.erlapi.logic;
+/**
  * Memebers:
  * @Author Gabriel Andres Avendaño Casadiego  gavendanoc@unal.edu.co
  * @Author Santiago Duque Bernal              saduquebe@unal.edu.co
@@ -246,6 +247,35 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             arguments.add(argument);
         }
         return arguments;
+    }
+
+    @Override
+    public T visitExpr200(ErlangParser.Expr200Context ctx) {
+        if (ctx.compOp() == null) {
+            return (T) visitExpr300(ctx.expr300(0));
+        }
+        String op = ctx.compOp().getText();
+        Datatype dt1 = (Datatype) visitExpr300(ctx.expr300(0));
+        Datatype dt2 = (Datatype) visitExpr300(ctx.expr300(1));
+
+        // TODO: TAMBIEN SE PUEDEN HACER VERIFICACIONES AQUI, EN VEZ DE LA CLASE DATATYPE
+
+        if (op.equals("==")){
+            return (T) dt1.equalop(dt2);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitExpr400(ErlangParser.Expr400Context ctx) {
+        Datatype result = (Datatype) visitExpr500(ctx.expr500(0));
+        for (int i = 1; i < ctx.expr500().size() ; i++){
+            Datatype other = (Datatype) visitExpr500(ctx.expr500(i));
+            if (ctx.addOp(i-1).getText().equals("+")){
+                result = result.add(other);
+            }
+        }
+        return (T) result;
     }
 
     /**

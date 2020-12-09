@@ -22,6 +22,7 @@ public class Datatype {
     private Object value;
     private Type type;
 
+
     public Datatype(Object value, Type type) {
         this.value = value;
         this.type = type;
@@ -46,6 +47,33 @@ public class Datatype {
 
     public boolean isVariable(){
         return type == Type.VARIABLE_NAME;
+    }
+
+
+    public Datatype equalop(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
+        if (type != other.getType()) {
+            System.out.println("Error: Solo se comparan del mismo tipo de dato");
+            System.exit(-1);
+        }
+        Datatype result = new Datatype();
+        result.setType(Type.BOOLEAN);
+        result.setValue(value.equals(other.getValue()));
+        return result;
+    }
+
+    public Datatype add(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
+        if (type != Type.DOUBLE) {
+            System.out.println("Error: Add only with doubles");
+            System.exit(-1);
+        }
+        if (type != other.getType()) {
+            System.out.println("Error: Add only with doubles");
+            System.exit(-1);
+        }
+        Datatype result = new Datatype();
+        result.setType(Type.DOUBLE);
+        result.setValue(((Double) value) + ((Double) other.getValue()));
+        return result;
     }
 
     @Override
