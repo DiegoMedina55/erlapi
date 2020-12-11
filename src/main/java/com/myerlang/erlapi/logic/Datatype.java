@@ -21,11 +21,13 @@ public class Datatype {
 
     private Object value; // 4.0
     private Type type; // DOUBLE
+    private String objectId; // id1 en caso de ser lista
 
 
     public Datatype(Object value, Type type) {
         this.value = value;
         this.type = type;
+        this.objectId = null;
     }
     public Datatype() {}
 
@@ -85,5 +87,17 @@ public class Datatype {
     public boolean equals(Object obj) {
         Datatype other = (Datatype) obj;
         return value.equals(other.getValue());
+    }
+
+    public String getObjectId() {
+        return objectId;
+    }
+
+    public void setObjectId(String objectId) {
+        this.objectId = objectId;
+    }
+
+    public boolean isObject(){
+        return objectId != null;
     }
 }

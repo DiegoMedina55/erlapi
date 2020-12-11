@@ -3,20 +3,24 @@ package com.myerlang.erlapi.logic;
 public class Variable {
     private String name;
     private boolean isParam;
-    private boolean isObject;
-    private Datatype value;
+    private Datatype datatype;
 
-    public Variable(String name, boolean isParam, boolean isObject, Datatype value) {
+    public Variable(String name, boolean isParam, Datatype value) {
         this.name = name;
         this.isParam = isParam;
-        this.isObject = isObject;
-        this.value = value;
+        this.datatype = value;
     }
 
-    public Variable(String name, boolean isParam, boolean isObject) {
+    public Variable(String name, boolean isParam) {
         this.name = name;
         this.isParam = isParam;
-        this.isObject = isObject;
+        this.datatype = new Datatype();
+    }
+
+    public Variable(String name) {
+        this.name = name;
+        this.isParam = false;
+        this.datatype = new Datatype();
     }
 
     public String getName() {
@@ -35,19 +39,11 @@ public class Variable {
         isParam = param;
     }
 
-    public boolean isObject() {
-        return isObject;
+    public Datatype getDatatype() {
+        return datatype;
     }
 
-    public void setObject(boolean object) {
-        isObject = object;
-    }
-
-    public Datatype getValue() {
-        return value;
-    }
-
-    public void setValue(Datatype value) {
-        this.value = value;
+    public void setDatatype(Datatype datatype) {
+        this.datatype = datatype;
     }
 }

@@ -7,17 +7,17 @@ package com.myerlang.erlapi.logic;
  */
 import com.myerlang.erlapi.gen.ErlangBaseVisitor;
 import com.myerlang.erlapi.gen.ErlangParser;
+import com.myerlang.erlapi.response.ResponseManager;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.Stack;
 
 public class MyVisitor<T> extends ErlangBaseVisitor {
     String startFunctionName = "start";
-    Stack <HashMap<String, Object>> scopes = new Stack<>();
+    Stack <Scope> scopes = new Stack<>();
     HashMap<String, ErlangFunction> functions = new HashMap<>();
+    ResponseManager responseManager = new ResponseManager();
 
     boolean isAssignToVariable = false;
     boolean isGettingVariableName = false;
@@ -34,9 +34,10 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             System.exit(-1);
         }
 
-        scopes.push(new HashMap<String, Object>()); // primer scope
+        scopes.push(new Scope(startFunctionName)); // primer scope
         ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
         visitClauseBody(startClause.getCtx().clauseBody());
+
         return null; // devolver el analisis
     }
 
@@ -127,24 +128,24 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     public Object visitTokVar(ErlangParser.TokVarContext ctx) { // N + 4
         String variableName = ctx.TokVar().getText();
         if (isAssignToVariable) { // For assigning value
-            if (this.scopes.peek().get(variableName) != null) {
+            if (this.scopes.peek().getScope().get(variableName) != null) {
                 // Error, variable ya existe
                 System.out.println("Error, variable ya existe");
                 System.exit(-1);
             }
-            Datatype emptyDataType = new Datatype();
-            this.scopes.peek().put(variableName, emptyDataType);
-            return emptyDataType;
+            Variable var = new Variable(variableName);
+            this.scopes.peek().getScope().put(variableName, var);
+            return var.getDatatype();
         }
         if (isGettingVariableName) { // For pattern matching
             return new Datatype(variableName, Datatype.Type.VARIABLE_NAME);
         }
-        if (this.scopes.peek().get(variableName) == null) {
+        if (this.scopes.peek().getScope().get(variableName) == null) {
             // Error: la variable no existe
             System.out.println("Error: la variable no existe");
             System.exit(-1);
         }
-        return this.scopes.peek().get(variableName); // For getting value from variable
+        return this.scopes.peek().getScope().get(variableName).getDatatype(); // For getting value from variable
     }
 
     @Override
@@ -206,12 +207,14 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
     private boolean checkGuard(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, ErlangFunctionClause clause){
         int parameters = parameterValues.size();
-        scopes.push(new HashMap<String, Object>());
+        String functionName = "temporalGuardScope";
+        scopes.push(new Scope(functionName));
         // añadiendo los parametros al scope
         for (int i = 0; i < parameters; i++){
             if (arguments.get(i).isVariable()){
                 String variableName = arguments.get(i).getValue().toString();
-                scopes.peek().put(variableName, parameterValues.get(i));
+                Variable paramVariable = new Variable(variableName, true, parameterValues.get(i));
+                scopes.peek().getScope().put(variableName, paramVariable);
             }
         }
         Datatype result = (Datatype) visitClauseGuard(clause.getCtx().clauseGuard());
@@ -222,15 +225,17 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
     private T callFunction(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, ErlangFunctionClause clause) {
         int parameters = parameterValues.size();
-        scopes.push(new HashMap<String, Object>());
+        scopes.push(new Scope(clause.getFunctionName()));
         // añadiendo los parametros al scope
         for (int i = 0; i < parameters; i++){
             if (arguments.get(i).isVariable()){
                 String variableName = arguments.get(i).getValue().toString();
-                scopes.peek().put(variableName, parameterValues.get(i));
+                Variable paramVariable = new Variable(variableName, true, parameterValues.get(i));
+                scopes.peek().getScope().put(variableName, paramVariable);
             }
         }
         Object result = visitClauseBody(clause.getCtx().clauseBody());
+        responseManager.buildStep(scopes, null, null, null);
         scopes.pop();
         return (T) result;
     }
