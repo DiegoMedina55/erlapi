@@ -37,7 +37,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         scopes.push(new HashMap<String, Object>()); // primer scope
         ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
         visitClauseBody(startClause.getCtx().clauseBody());
-        return null;
+        return null; // devolver el analisis
     }
 
     @Override
@@ -115,20 +115,22 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         // Ejemplo N = 5;
         isAssignToVariable = true;
         // Objeto 'variable' en scope, actualizar aqui se actualiza el valor de la variable
-        Datatype variable = (Datatype) visitExpr150(ctx.expr150(0));
+        Datatype variable = (Datatype) visitExpr150(ctx.expr150(0)); // N
         isAssignToVariable = false;
-        Datatype value = (Datatype) visitExpr150(ctx.expr150(1));
+        Datatype value = (Datatype) visitExpr150(ctx.expr150(1)); // 4
         variable.setType(value.getType());
-        variable.setValue(value.getValue());
+        variable.setValue(value.getValue()); // N = 4
         return (T) value;
     }
 
     @Override
-    public Object visitTokVar(ErlangParser.TokVarContext ctx) {
+    public Object visitTokVar(ErlangParser.TokVarContext ctx) { // N + 4
         String variableName = ctx.TokVar().getText();
         if (isAssignToVariable) { // For assigning value
             if (this.scopes.peek().get(variableName) != null) {
                 // Error, variable ya existe
+                System.out.println("Error, variable ya existe");
+                System.exit(-1);
             }
             Datatype emptyDataType = new Datatype();
             this.scopes.peek().put(variableName, emptyDataType);

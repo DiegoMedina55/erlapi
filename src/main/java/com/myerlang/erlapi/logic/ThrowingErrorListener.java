@@ -12,6 +12,9 @@ public class ThrowingErrorListener extends BaseErrorListener {
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
             throws ParseCancellationException {
         /* TODO: ENVIAR AL USUARIO EL MENSAJE DE ERROR */
+
+
+
         throw new ParseCancellationException("line " + line + ":" + charPositionInLine + " " + msg);
     }
 }

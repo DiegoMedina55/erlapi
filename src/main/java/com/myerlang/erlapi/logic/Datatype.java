@@ -19,8 +19,8 @@ public class Datatype {
         VARIABLE_NAME,
     }
 
-    private Object value;
-    private Type type;
+    private Object value; // 4.0
+    private Type type; // DOUBLE
 
 
     public Datatype(Object value, Type type) {

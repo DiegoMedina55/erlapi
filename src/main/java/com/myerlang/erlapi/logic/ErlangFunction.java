@@ -9,16 +9,16 @@ import java.util.HashMap;
  * Por ejemplo:
  * Se tienen 3 clausulas:
  *
- * sum (0, b) -> b;
- * sum (a, b) -> a + b.
- * sum (a, b, c) -> a + b + c.
+ * sum (0, B) -> B;
+ * sum (A, B) -> A + B.
+ * sum (A, B, C) -> A + B + C.
  *
  * Entonces
  *
  * name = sum
- * allClauses: {
- *     1: [sum (0, b) -> b, sum (a, b) -> a + b]
- *     2: [sum (a, b, c) -> a + b + c]
+ * allClauses: {  sum (0, 4)
+ *     2: [sum (0, B) -> B, sum (A, B) -> A + B]
+ *     3: [sum (A, B, C) -> A + B + C]
  * }
  */
 
