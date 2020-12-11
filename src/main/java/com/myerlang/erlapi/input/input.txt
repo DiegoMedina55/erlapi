@@ -1,13 +1,18 @@
 -export(start/0).
 
-a() -> none.
-a(one, Var) -> Var + 1.
-a(two, Var, Pa) -> Var + Pa;
-a(Var1, Var2, Pa) -> N=5, Var1 + Var2 + Pa.
+comparingAtoms() ->
+    io:fwrite(atom == atom),
+    io:fwrite(atom1 == atom).
+
+comparingNumbers() ->
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.1).
+
+comparingStrings() ->
+    io:fwrite("string" == "string"),
+    io:fwrite("string" == string). % los atomos no son strings
 
 start()->
-    N = 1,
-    io:fwrite(a()),
-    io:fwrite(a(one, N)),
-    io:fwrite(a(two, N, 6.5)),
-    io:fwrite(a(5, N, 7.9)).
+    comparingAtoms(),
+    comparingNumbers(),
+    comparingStrings().

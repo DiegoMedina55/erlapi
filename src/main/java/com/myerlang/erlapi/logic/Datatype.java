@@ -1,6 +1,7 @@
 package com.myerlang.erlapi.logic;
 
 import javax.xml.crypto.Data;
+import java.util.ArrayList;
 
 /**
  * Memebers:
@@ -10,7 +11,7 @@ import javax.xml.crypto.Data;
  */
 
 public class Datatype {
-    enum Type {
+    public enum Type {
         BOOLEAN,
         DOUBLE,
         ATOM,
@@ -21,13 +22,10 @@ public class Datatype {
 
     private Object value; // 4.0
     private Type type; // DOUBLE
-    private String objectId; // id1 en caso de ser lista
-
 
     public Datatype(Object value, Type type) {
         this.value = value;
         this.type = type;
-        this.objectId = null;
     }
     public Datatype() {}
 
@@ -50,7 +48,6 @@ public class Datatype {
     public boolean isVariable(){
         return type == Type.VARIABLE_NAME;
     }
-
 
     public Datatype equalop(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
         if (type != other.getType()) {
@@ -87,17 +84,5 @@ public class Datatype {
     public boolean equals(Object obj) {
         Datatype other = (Datatype) obj;
         return value.equals(other.getValue());
-    }
-
-    public String getObjectId() {
-        return objectId;
-    }
-
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
-    }
-
-    public boolean isObject(){
-        return objectId != null;
     }
 }

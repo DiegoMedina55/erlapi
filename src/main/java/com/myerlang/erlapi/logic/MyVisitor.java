@@ -19,6 +19,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     HashMap<String, ErlangFunction> functions = new HashMap<>();
     ResponseManager responseManager = new ResponseManager();
 
+
     boolean isAssignToVariable = false;
     boolean isGettingVariableName = false;
 
@@ -116,11 +117,11 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         // Ejemplo N = 5;
         isAssignToVariable = true;
         // Objeto 'variable' en scope, actualizar aqui se actualiza el valor de la variable
-        Datatype variable = (Datatype) visitExpr150(ctx.expr150(0)); // N
+        Datatype datatype = (Datatype) visitExpr150(ctx.expr150(0)); // N
         isAssignToVariable = false;
         Datatype value = (Datatype) visitExpr150(ctx.expr150(1)); // 4
-        variable.setType(value.getType());
-        variable.setValue(value.getValue()); // N = 4
+        datatype.setType(value.getType());
+        datatype.setValue(value.getValue()); // N = 4
         return (T) value;
     }
 

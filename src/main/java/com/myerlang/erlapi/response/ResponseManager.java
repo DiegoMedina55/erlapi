@@ -1,7 +1,11 @@
 package com.myerlang.erlapi.response;
 
+import com.myerlang.erlapi.logic.Datatype;
+import com.myerlang.erlapi.logic.ListObject;
 import com.myerlang.erlapi.logic.Scope;
 import com.myerlang.erlapi.logic.Variable;
+import com.myerlang.erlapi.response.pojos.Step;
+import com.myerlang.erlapi.response.pojos.StepFunction;
 
 import java.util.*;
 
@@ -19,14 +23,16 @@ public class ResponseManager {
 
             String returnVal = (i == scopes.size() - 1) ? returnValue : null;
             functions.add(new StepFunction(name, params, variables, objectVariales, returnVal));
-
+            /*
             System.out.println("scope " + i);
             System.out.println(name);
             System.out.println(params);
             System.out.println(variables);
-            System.out.println(objectVariales);
+            System.out.println(objectVariales);*/
         }
-        return new Step(currentLine, null, output, null, functions);
+        Step step = new Step(currentLine, null, output, null, functions);
+        steps.add(step);
+        return step;
     }
 
     private HashMap<String, String> getParams(HashMap<String, Variable> localScope){
@@ -36,8 +42,8 @@ public class ResponseManager {
             Map.Entry mapElement = (Map.Entry)hmIterator.next();
             Variable var = (Variable) mapElement.getValue();
             if (var.isParam()) {
-                if (var.getDatatype().isObject()) {
-                    params.put(var.getName(), var.getDatatype().getObjectId());
+                if (var.getDatatype().getType() == Datatype.Type.LIST) {
+                    params.put(var.getName(), ((ListObject) var.getDatatype().getValue()).getListId());
                 } else {
                     params.put(var.getName(), var.getDatatype().getValue().toString());
                 }
@@ -52,7 +58,7 @@ public class ResponseManager {
         while (hmIterator.hasNext()) {
             Map.Entry mapElement = (Map.Entry)hmIterator.next();
             Variable var = (Variable) mapElement.getValue();
-            if (!var.isParam() && !var.getDatatype().isObject()) {
+            if (!var.isParam() && var.getDatatype().getType() != Datatype.Type.LIST) {
                 variables.put(var.getName(), var.getDatatype().getValue().toString());
             }
         }
@@ -65,8 +71,8 @@ public class ResponseManager {
         while (hmIterator.hasNext()) {
             Map.Entry mapElement = (Map.Entry)hmIterator.next();
             Variable var = (Variable) mapElement.getValue();
-            if (var.getDatatype().isObject()) {
-                variables.put(var.getName(), var.getDatatype().getObjectId());
+            if (var.getDatatype().getType() == Datatype.Type.LIST) {
+                variables.put(var.getName(), ((ListObject) var.getDatatype().getValue()).getListId());
             }
         }
         return variables;

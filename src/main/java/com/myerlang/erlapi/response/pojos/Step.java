@@ -1,4 +1,4 @@
-package com.myerlang.erlapi.response;
+package com.myerlang.erlapi.response.pojos;
 
 import java.util.ArrayList;
 import java.util.HashMap;
