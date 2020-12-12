@@ -265,11 +265,18 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         String op = ctx.compOp().getText();
         Datatype dt1 = (Datatype) visitExpr300(ctx.expr300(0));
         Datatype dt2 = (Datatype) visitExpr300(ctx.expr300(1));
-
         // TODO: TAMBIEN SE PUEDEN HACER VERIFICACIONES AQUI, EN VEZ DE LA CLASE DATATYPE
-
-        if (op.equals("==")){
-            return (T) dt1.equalop(dt2);
+        switch(op){
+            case "==":
+                return (T) dt1. equalop(dt2);
+            case ">=":
+                return (T) dt1.greaterEqualOp(dt2);
+            case "=<":
+                return (T) dt1.lessEqualOp(dt2);
+            case ">":
+                return (T) dt1.greaterThanop(dt2);
+            case "<":
+                return (T) dt1.lessThanop(dt2);
         }
         return null;
     }
@@ -279,8 +286,35 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         Datatype result = (Datatype) visitExpr500(ctx.expr500(0));
         for (int i = 1; i < ctx.expr500().size() ; i++){
             Datatype other = (Datatype) visitExpr500(ctx.expr500(i));
-            if (ctx.addOp(i-1).getText().equals("+")){
-                result = result.add(other);
+            String op = ctx.addOp(i-1).getText();
+            switch (op) {
+                case "+":
+                    result = result.arithmetic(other, "+");
+                    break;
+                case "-":
+                    result = result.arithmetic(other, "-");
+                    break;
+            }
+        }
+        return (T) result;
+    }
+    @Override
+    public Object visitExpr500(ErlangParser.Expr500Context ctx) {
+        Datatype result = (Datatype) visitExpr600(ctx.expr600(0));
+
+        for (int i = 1; i < ctx.expr600().size() ; i++){
+            Datatype other = (Datatype) visitExpr600(ctx.expr600(i));
+            String op = ctx.multOp(i-1).getText();
+            switch (op) {
+                case "*":
+                    result = result.arithmetic(other, "*");
+                    break;
+                case "/":
+                    result = result.arithmetic(other, "/");
+                    break;
+                case "rem":
+                    result = result.arithmetic(other, "%");
+                    break;
             }
         }
         return (T) result;
