@@ -19,10 +19,48 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     HashMap<String, ErlangFunction> functions = new HashMap<>();
     ResponseManager responseManager = new ResponseManager();
 
-
     boolean isAssignToVariable = false;
     boolean isGettingVariableName = false;
+    int count = 0;
+    /*
+    @Override
+    public Object visitForm(ErlangParser.FormContext ctx) {
+        try {
+            if(ctx.attribute().tokAtom().getText().equals("export")){
+                String name = ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
+                        expr200(0).expr300(0).expr400(0).expr500(0).expr600(0).
+                        getText();
+                int params = Integer.parseInt(ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
+                        expr200(0).expr300(0).expr400(0).expr500(0).expr600(1).getText());
+                responseManager.addFunction(name,params,true);
 
+                ErlangParser.ExprsContext attribContext = ctx.attribute().attrVal().exprs();
+                for(int i = 0; i < attribContext.expr().size(); i++){
+                    String functionName = attribContext.expr(i).expr100().expr150(0).expr160(0).
+                            expr200(0).expr300(0).expr400(0).expr500(0).expr600(0).
+                            getText();
+                    int functionParams = Integer.parseInt(attribContext.expr(i).expr100().expr150(0).
+                            expr160(0).expr200(0).expr300(0).expr400(0).expr500(0).
+                            expr600(1).getText());
+                    //System.out.println("Funcion: "+functionName+" Con cantidad de parametros: "+functionParams);
+                    if(functions.get(functionName) != null){
+                        responseManager.addFunction(functionName,functionParams,true);
+                    }
+                    else{
+                        System.out.println("La función "+functionName+ " no existe");
+                        System.exit(-1);
+                    }
+                }
+                //responseManager.addFunction()
+                //System.out.println(ctx.attribute().attrVal().exprs().expr()getText());
+            }
+        }
+        catch (Exception w){
+            //No tienen atributos o no tienen export
+        }
+        return null;
+    }
+    */
     @Override
     public T visitForms(ErlangParser.FormsContext ctx) {
         super.visitForms(ctx);
@@ -37,8 +75,9 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
         scopes.push(new Scope(startFunctionName)); // primer scope
         ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
+        //responseManager.buildStep(scopes,ctx.start.getLine(),"Paso inicial","Paso inicial");
+        //System.out.println(responseManager);
         visitClauseBody(startClause.getCtx().clauseBody());
-
         return null; // devolver el analisis
     }
 
@@ -63,6 +102,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                 System.exit(-1);
             }
             clauses.add(clause);
+
         }
 
         ErlangFunction function = functions.get(functionName);
@@ -167,7 +207,11 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     public T print (ErlangParser.FunctionCallContext ctx) {
         if (ctx.expr() != null) {
             Datatype value = (Datatype) visitExpr(ctx.expr());
+            //RETORNO DE OPERACIONES LOGICAS
             System.out.println(value.getValue());
+            responseManager.buildStep(scopes,ctx.start.getLine(),String.valueOf(value.getValue()),"null");
+            count++;
+            System.out.println("instrucción "+count+"  "+responseManager);
         }
         Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
         return (T) dt;
@@ -236,8 +280,11 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             }
         }
         Object result = visitClauseBody(clause.getCtx().clauseBody());
-        responseManager.buildStep(scopes, null, null, null);
+        //FALLA EL RETORNO
+        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, String.valueOf(result));
+        System.out.println(responseManager);
         scopes.pop();
+        //RETORNO Y OTRO PASO
         return (T) result;
     }
 
@@ -296,6 +343,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                     break;
             }
         }
+
         return (T) result;
     }
     @Override

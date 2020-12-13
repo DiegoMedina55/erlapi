@@ -57,4 +57,15 @@ public class Step {
     public void setFunctions(ArrayList<StepFunction> functions) {
         this.functions = functions;
     }
+
+    @Override
+    public String toString() {
+        return "Step{" +
+                "currentLine=" + currentLine +
+                ", nextLine=" + nextLine +
+                ", output='" + output + '\'' +
+                ", objects=" + objects +
+                ", functions=" + functions +
+                '}';
+    }
 }

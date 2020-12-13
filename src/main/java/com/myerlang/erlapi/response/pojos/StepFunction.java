@@ -56,4 +56,15 @@ public class StepFunction {
     public void setReturnValue(String returnValue) {
         this.returnValue = returnValue;
     }
+
+    @Override
+    public String toString() {
+        return "StepFunction{" +
+                "name='" + name + '\'' +
+                ", params=" + params +
+                ", variables=" + variables +
+                ", objectVariales=" + objectVariales +
+                ", returnValue='" + returnValue + '\'' +
+                '}';
+    }
 }

@@ -4,12 +4,14 @@ import com.myerlang.erlapi.logic.Datatype;
 import com.myerlang.erlapi.logic.ListObject;
 import com.myerlang.erlapi.logic.Scope;
 import com.myerlang.erlapi.logic.Variable;
+import com.myerlang.erlapi.response.pojos.FunctionDeclaration;
 import com.myerlang.erlapi.response.pojos.Step;
 import com.myerlang.erlapi.response.pojos.StepFunction;
 
 import java.util.*;
 
 public class ResponseManager {
+    ArrayList<FunctionDeclaration> functions = new ArrayList<FunctionDeclaration>();
     ArrayList<Step> steps = new ArrayList<Step>();
 
     public Step buildStep (Stack<Scope> scopes, Integer currentLine, String output, String returnValue) {
@@ -19,16 +21,16 @@ public class ResponseManager {
             String name = scope.getFunctionName();
             HashMap<String, String> params = getParams(scope.getScope());
             HashMap<String, String> variables = getVariables(scope.getScope());
-            HashMap<String, String> objectVariales = getObjectVariables(scope.getScope());
+            HashMap<String, String> objectVariables = getObjectVariables(scope.getScope());
 
             String returnVal = (i == scopes.size() - 1) ? returnValue : null;
-            functions.add(new StepFunction(name, params, variables, objectVariales, returnVal));
+            functions.add(new StepFunction(name, params, variables, objectVariables, returnVal));
             /*
             System.out.println("scope " + i);
             System.out.println(name);
             System.out.println(params);
             System.out.println(variables);
-            System.out.println(objectVariales);*/
+            System.out.println(objectVariables);*/
         }
         Step step = new Step(currentLine, null, output, null, functions);
         steps.add(step);
@@ -76,5 +78,15 @@ public class ResponseManager {
             }
         }
         return variables;
+    }
+    public Boolean addFunction (String name, int params, Boolean isExport){
+        FunctionDeclaration add = new FunctionDeclaration(name,params,isExport);
+        return functions.add(add);
+    }
+    @Override
+    public String toString() {
+        return "ResponseManager{" +
+                "steps=" + steps +
+                '}';
     }
 }

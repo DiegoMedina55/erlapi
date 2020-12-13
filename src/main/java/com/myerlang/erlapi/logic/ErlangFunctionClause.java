@@ -59,4 +59,14 @@ public class ErlangFunctionClause {
     public ErlangParser.ExprsContext getArguments() {
         return arguments;
     }
+
+    @Override
+    public String toString() {
+        return "ErlangFunctionClause{" +
+                "functionName='" + functionName + '\'' +
+                ", numParameters=" + numParameters +
+                ", ctx=" + ctx +
+                ", arguments=" + arguments +
+                '}';
+    }
 }

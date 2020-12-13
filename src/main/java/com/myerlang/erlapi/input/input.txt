@@ -1,4 +1,4 @@
-% -export(start/0).
+% -export(start/0, suma/1, resta/65, mult/2, division/0).
 
 comparingAtoms() ->
     io:fwrite(atom == atom),
@@ -21,4 +21,5 @@ start()->
     io:fwrite( 10 - 3),
     io:fwrite( 10 * 3),
     io:fwrite( 10 / 3),
+    comparingNumbers(),
     io:fwrite( 10 rem 3).
