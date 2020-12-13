@@ -176,6 +176,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             }
             Variable var = new Variable(variableName);
             this.scopes.peek().getScope().put(variableName, var);
+            var.getDatatype().setValue("something");
             return var.getDatatype();
         }
         if (isGettingVariableName) { // For pattern matching

@@ -1,25 +1,9 @@
 % -export(start/0, suma/1, resta/65, mult/2, division/0).
 
-comparingAtoms() ->
-    io:fwrite(atom == atom),
-    io:fwrite(atom1 == atom).
-
-comparingNumbers() ->
-    io:fwrite(1 == 1.0),
-    io:fwrite(1 == 1.1).
-
-comparingStrings() ->
-    io:fwrite("string" == "string"),
-    io:fwrite("string" == string). % los atomos no son strings
-
 sum (0, B) -> B;
 sum (A, B) -> A + B.
 sum (A, B, C) -> A + B + C.
 
 start()->
-    io:fwrite( 10 + 3),
-    io:fwrite( 10 - 3),
-    io:fwrite( 10 * 3),
-    io:fwrite( 10 / 3),
-    comparingNumbers(),
-    io:fwrite( 10 rem 3).
+    A = 10 + sum(10, 10),
+    io:fwrite( A ).
