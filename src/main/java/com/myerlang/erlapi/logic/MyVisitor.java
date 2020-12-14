@@ -235,7 +235,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         datatype.setValue(value.getValue()); // N = 4
         //Variable dentro de un scope
         System.out.println("Asignación de variables");
-        responseManager.buildStep(scopes,ctx.start.getLine(),value.getValue().toString(),"");
+        responseManager.buildStep(scopes,ctx.start.getLine(),"","");
         System.out.println(responseManager);
         return (T) value;
     }
@@ -300,7 +300,6 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         else{
             dt = new Datatype("ok", Datatype.Type.ATOM);
         }
-
         return (T) dt;
     }
 
@@ -365,10 +364,10 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         scopes.push(new Scope(clause.getFunctionName()));
         // añadiendo los parametros al scope
         lookupParams(parameterValues, arguments, parameters);
-        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, null);
+        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), "", "");
         Datatype result = (Datatype) visitClauseBody(clause.getCtx().clauseBody());
         //TODO: que es lo que hace el paso bien
-        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, result.getValue().toString());
+        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), "", result.getValue().toString());
         System.out.println("LLEGO:  "+result);
         System.out.println(responseManager);
         scopes.pop();
