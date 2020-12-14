@@ -83,7 +83,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         //System.out.println(responseManager);
         visitClauseBody(startClause.getCtx().clauseBody());
         System.out.println(parser.StepsToJson());
-        return null; // devolver el analisis
+        return (T) parser.StepsToJson(); // devolver el analisis
     }
 
     @Override

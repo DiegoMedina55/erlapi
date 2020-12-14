@@ -35,9 +35,9 @@ public class Analysis {
 
             MyVisitor<Object> loader = new MyVisitor<Object>();
             try{
-                loader.visit(tree); // result = (String) loader.visit(tree);
+                result = (String) loader.visit(tree); //loader.visit(tree);
             }catch (ArrayIndexOutOfBoundsException e){
-                System.out.println(e.getMessage());
+                result = e.getMessage();
             }
         } catch (Exception e){
             String val;
