@@ -1,0 +1,13 @@
+-export(start/0).
+
+a() -> none.
+a(one, Var) -> Var + 1.
+a(two, Var, Pa) -> Var + Pa;
+a(Var1, Var2, Pa) -> Var1 + Var2 + Pa.
+
+start()->
+    N = 1,
+    io:fwrite(a()),
+    io:fwrite(a(one, N)),
+    io:fwrite(a(two, N, 6.5)),
+    io:fwrite(a(5, B, 7.9)).

@@ -5,27 +5,54 @@ package com.myerlang.erlapi.logic; /**
  * @Author Juan Diego Medina Naranjo          jmedinan@unal.edu.co
  */
 
-import com.myerlang.erlapi.gen.BccLanguageLexer;
-import com.myerlang.erlapi.gen.BccLanguageParser;
+import com.myerlang.erlapi.gen.ErlangLexer;
+import com.myerlang.erlapi.gen.ErlangParser;
+import com.myerlang.erlapi.response.ResponseManager;
+import com.myerlang.erlapi.response.pojos.StepToJson;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.springframework.http.ResponseEntity;
+
+import java.io.IOException;
+import java.net.http.HttpResponse;
 
 public class Analysis {
     public static String analyse(String code) {
+        ResponseManager res = new ResponseManager();
+        StepToJson error = new StepToJson();
         String result = "";
         try{
-            BccLanguageLexer lexer;
-            lexer = new BccLanguageLexer(CharStreams.fromString(code));
+            ErlangLexer lexer;
+            lexer = new ErlangLexer(CharStreams.fromString(code));
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
 
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            BccLanguageParser parser = new BccLanguageParser(tokens);
-            ParseTree tree = parser.prog();
+            ErlangParser parser = new ErlangParser(tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(ThrowingErrorListener.INSTANCE);
+            ParseTree tree = parser.forms();
 
             MyVisitor<Object> loader = new MyVisitor<Object>();
-            result = (String) loader.visit(tree);
-            System.out.println(result);
+            try{
+                result = (String) loader.visit(tree); //loader.visit(tree);
+            }catch (ArrayIndexOutOfBoundsException e){
+                result = e.getMessage();
+            }
         } catch (Exception e){
-            System.err.println("Error (Test): " + e);
+            String val;
+            String row;
+            String column;
+            String caterror = e.getMessage();
+            String[] values = caterror.split(" ");
+            row = values[1].split(":")[0];
+            column = values[1].split(":")[1];
+            if(caterror.contains("token")){
+                result = error.ErrorToJson("Linea:"+row+" Columna: "+column+" Error léxico");
+            }
+            else {
+                result = error.ErrorToJson("Linea:"+row+" Columna: "+column+" Error sintáctico");
+            }
         }
         return result;
     }

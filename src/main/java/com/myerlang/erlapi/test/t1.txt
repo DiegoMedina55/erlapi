@@ -1,0 +1,8 @@
+-export(start/0).
+
+sumUntil5 (N) when N == 5 -> N;
+sumUntil5 (N) -> N + sumUntil5 (N+1).
+
+start()->
+    N = 1,
+    io:fwrite(sumUntil5(N)).

@@ -1,5 +1,12 @@
 package com.myerlang.erlapi.controller;
 
+/**
+ * Memebers:
+ * @Author Gabriel Andres Avendaño Casadiego  gavendanoc@unal.edu.co
+ * @Author Santiago Duque Bernal              saduquebe@unal.edu.co
+ * @Author Juan Diego Medina Naranjo          jmedinan@unal.edu.co
+ */
+
 import com.myerlang.erlapi.logic.Analysis;
 import org.springframework.web.bind.annotation.*;
 // mark this class as a controller to handle /demo requests

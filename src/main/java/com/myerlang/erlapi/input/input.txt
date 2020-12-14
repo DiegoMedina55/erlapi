@@ -1,0 +1,33 @@
+% -export(start/0, sumsumsum/1, comparingNumbers/65, comparingStrings/2).
+
+comparingAtomsñ) ->
+    io:fwrite(atom == atom),
+    io:fwrite(atom1 == atom).
+
+comparingNumbers(X,I) ->
+    A = 10,
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.1).
+
+comparingStrings() ->
+    io:fwrite("string" == "string"),
+    io:fwrite("string" == string). % los atomos no son strings
+
+sum (0, B) -> B;
+sum (A, B) -> A + B.
+sum (A, B, C) -> A + B + C.
+
+start()->
+    io:fwrite( 10 + 3),
+    io:fwrite( 10 - 3),
+    io:fwrite( 10 * 3),
+    io:fwrite( 10 / 3),
+    comparingNumbers(100, 3),
+    sumar(10,6),
+    X = sum(3,4),
+    io:fwrite(X),
+    io:fwrite( 10 rem 3).
