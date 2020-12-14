@@ -83,6 +83,9 @@ public class ResponseManager {
         FunctionDeclaration add = new FunctionDeclaration(name,params,isExport);
         return functions.add(add);
     }
+    public ArrayList<FunctionDeclaration> getFunctions(){
+        return functions;
+    }
     @Override
     public String toString() {
         return "ResponseManager{" +

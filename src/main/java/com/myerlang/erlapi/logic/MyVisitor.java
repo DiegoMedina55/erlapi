@@ -8,9 +8,8 @@ package com.myerlang.erlapi.logic;
 import com.myerlang.erlapi.gen.ErlangBaseVisitor;
 import com.myerlang.erlapi.gen.ErlangParser;
 import com.myerlang.erlapi.response.ResponseManager;
-import com.myerlang.erlapi.response.pojos.StepToJson;
+import com.myerlang.erlapi.response.StepToJson;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
@@ -24,6 +23,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     StepToJson parser = new StepToJson(responseManager);
     boolean isAssignToVariable = false;
     boolean isGettingVariableName = false;
+    boolean isGettingExported = false;
     int count = 0;
     /*
     @Override
@@ -33,10 +33,11 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                 String name = ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
                         expr200(0).expr300(0).expr400(0).expr500(0).expr600(0).
                         getText();
+                System.out.println(name);
                 int params = Integer.parseInt(ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
                         expr200(0).expr300(0).expr400(0).expr500(0).expr600(1).getText());
                 responseManager.addFunction(name,params,true);
-
+                System.out.println(params);
                 ErlangParser.ExprsContext attribContext = ctx.attribute().attrVal().exprs();
                 for(int i = 0; i < attribContext.expr().size(); i++){
                     String functionName = attribContext.expr(i).expr100().expr150(0).expr160(0).
@@ -51,7 +52,8 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                     }
                     else{
                         System.out.println("La función "+functionName+ " no existe");
-                        System.exit(-1);
+                        String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+"La función "+functionName+ " no existe");
+                        throw new ArrayIndexOutOfBoundsException(res);
                     }
                 }
                 //responseManager.addFunction()
@@ -64,27 +66,88 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         return null;
     }
     */
+
+    private void getExports(ErlangParser.FormsContext upperCtx) {
+        ErlangParser.FormContext ctx= upperCtx.form().get(0);
+        try {
+            if(ctx.attribute().tokAtom().getText().equals("export")){
+                String name = ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
+                        expr200(0).expr300(0).expr400(0).expr500(0).expr600(0).
+                        getText();
+                int params = Integer.parseInt(ctx.attribute().attrVal().expr().expr100().expr150(0).expr160(0).
+                        expr200(0).expr300(0).expr400(0).expr500(0).expr600(1).getText());
+                lookup(name);
+                int exists;
+                ErlangParser.ExprsContext attribContext = ctx.attribute().attrVal().exprs();
+                for(int i = 0; i < attribContext.expr().size(); i++){
+                    String functionName = attribContext.expr(i).expr100().expr150(0).expr160(0).
+                            expr200(0).expr300(0).expr400(0).expr500(0).expr600(0).
+                            getText();
+                    int functionParams = Integer.parseInt(attribContext.expr(i).expr100().expr150(0).
+                            expr160(0).expr200(0).expr300(0).expr400(0).expr500(0).
+                            expr600(1).getText());
+                    if(functions.get(functionName) != null){
+                        lookup(functionName);
+                    }
+                    else{
+                        System.out.println("La función "+functionName+ " no existe");
+                        String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+"La función "+functionName+ " no existe");
+                        throw new ArrayIndexOutOfBoundsException(res);
+                    }
+                }
+                //responseManager.addFunction()
+                //System.out.println(ctx.attribute().attrVal().exprs().expr()getText());
+            }
+        }
+        catch (Exception w){
+            //No tienen atributos o no tienen export
+        }
+    }
+
+    private void lookup(String name) {
+        if(functions.get(name).getName().equals(name)){
+            for (int i = 0;i< functions.size();i++){
+                if(responseManager.getFunctions().get(i).getName().equals(name)){
+                    responseManager.getFunctions().get(i).setExport(true);
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public Object visitAttribute(ErlangParser.AttributeContext ctx) {
+        isGettingExported = true;
+        Object res = super.visitAttribute(ctx);
+        isGettingExported = false;
+        return res;
+    }
+
     @Override
     public T visitForms(ErlangParser.FormsContext ctx) {
         super.visitForms(ctx);
-
+        getExports(ctx);
         // llamar a start()
         ErlangFunction start = functions.get(startFunctionName);
         if (start == null) {
             // Error: no se definio start
             System.out.println("Error: no se definio start");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" La función start no existe");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
-
         scopes.push(new Scope(startFunctionName)); // primer scope
         ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
-        responseManager.buildStep(scopes,ctx.start.getLine(),"Paso inicial","Paso inicial");
 
         //System.out.println(responseManager);
-        visitClauseBody(startClause.getCtx().clauseBody());
+
+        Datatype init = (Datatype) visitClauseBody(startClause.getCtx().clauseBody());
+        responseManager.buildStep(scopes,ctx.start.getLine(),"Paso inicial",init.getValue().toString());
         System.out.println(parser.StepsToJson());
+        System.out.println(responseManager.getFunctions());
         return (T) parser.StepsToJson(); // devolver el analisis
     }
+
+
 
     @Override
     public T visitFunction(ErlangParser.FunctionContext ctx) {
@@ -99,12 +162,14 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             if (clause.getNumParameters() != params) {
                 // Error: las clausulas deben tener mismo numero de params
                 System.out.println("Error: las clausulas deben tener mismo numero de params");
-                System.exit(-1);
+                String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" las clausulas deben tener mismo numero de params");
+                throw new ArrayIndexOutOfBoundsException(res);
             }
             if (!clause.getFunctionName().equals(functionName)) {
                 // Error: las clausulas deben tener mismo nombre
                 System.out.println("Error: las clausulas deben tener mismo nombre");
-                System.exit(-1);
+                String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" las clausulas deben tener mismo nombre");
+                throw new ArrayIndexOutOfBoundsException(res);
             }
             clauses.add(clause);
 
@@ -114,6 +179,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         if (function == null) { // funcion no existe aun
             function = new ErlangFunction(functionName);
             functions.put(functionName, function);
+            responseManager.addFunction(functionName,params,false);
         }
         function.addClauses(params, clauses);
         return null;
@@ -169,7 +235,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         datatype.setValue(value.getValue()); // N = 4
         //Variable dentro de un scope
         System.out.println("Asignación de variables");
-        responseManager.buildStep(scopes,ctx.start.getLine(),null,null);
+        responseManager.buildStep(scopes,ctx.start.getLine(),value.getValue().toString(),"");
         System.out.println(responseManager);
         return (T) value;
     }
@@ -181,7 +247,8 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             if (this.scopes.peek().getScope().get(variableName) != null) {
                 // Error, variable ya existe
                 System.out.println("Error, variable ya existe");
-                System.exit(-1);
+                String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" La variable ya existe");
+                throw new ArrayIndexOutOfBoundsException(res);
             }
             Variable var = new Variable(variableName);
             this.scopes.peek().getScope().put(variableName, var);
@@ -193,14 +260,17 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         }
         if (this.scopes.peek().getScope().get(variableName) == null) {
             // Error: la variable no existe
-            System.out.println("Error: la variable no existe");
-            System.exit(-1);
+            System.out.println("Error: La variable no existe");
+            String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" La variable no existe");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         return this.scopes.peek().getScope().get(variableName).getDatatype(); // For getting value from variable
     }
 
     @Override
     public T visitFunctionCall(ErlangParser.FunctionCallContext ctx){
+        //TODO: STEP
+        responseManager.buildStep(scopes,ctx.start.getLine(),"","");
         if (ctx.PRINT() != null){
             return print(ctx);
         }
@@ -223,7 +293,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             //RETORNO DE OPERACIONES LOGICAS
             dt =new Datatype(value.getValue(), Datatype.Type.STRING);
             System.out.println(value.getValue());
-            responseManager.buildStep(scopes,ctx.start.getLine(),String.valueOf(value.getValue()),"null");
+            responseManager.buildStep(scopes,ctx.start.getLine(),String.valueOf(value.getValue()),"");
             count++;
             System.out.println("instrucción "+count+"  "+responseManager);
         }
@@ -242,7 +312,8 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
         if (clauses == null) {
             System.out.println("Error : No existe clausula con esa cantidad de parametros");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+callCtx.start.getLine()+" Columna: "+callCtx.start.getCharPositionInLine()+" No existe clausula con esa cantidad de parametros");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
 
         ArrayList<Datatype> parameterValues = new ArrayList<>();
@@ -262,9 +333,9 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             }
             selected++;
         }
-        System.out.println("Error : No se pudo hacer patterns matching");
-        System.exit(-1);
-        return null;
+        System.out.println("Error : No se pudo hacer pattern matching");
+        String res = parser.ErrorToJson("Linea:"+callCtx.start.getLine()+" Columna: "+callCtx.start.getCharPositionInLine()+" No se pudo hacer pattern matching");
+        throw new ArrayIndexOutOfBoundsException(res);
     }
 
     private boolean checkGuard(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, ErlangFunctionClause clause){
@@ -351,15 +422,15 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         // TODO: TAMBIEN SE PUEDEN HACER VERIFICACIONES AQUI, EN VEZ DE LA CLASE DATATYPE
         switch(op){
             case "==":
-                return (T) dt1. equalop(dt2);
+                return (T) dt1. equalop(dt2,ctx.start.getLine(),ctx.start.getCharPositionInLine());
             case ">=":
-                return (T) dt1.greaterEqualOp(dt2);
+                return (T) dt1.greaterEqualOp(dt2,ctx.start.getLine(),ctx.start.getCharPositionInLine());
             case "=<":
-                return (T) dt1.lessEqualOp(dt2);
+                return (T) dt1.lessEqualOp(dt2,ctx.start.getLine(),ctx.start.getCharPositionInLine());
             case ">":
-                return (T) dt1.greaterThanop(dt2);
+                return (T) dt1.greaterThanop(dt2,ctx.start.getLine(),ctx.start.getCharPositionInLine());
             case "<":
-                return (T) dt1.lessThanop(dt2);
+                return (T) dt1.lessThanop(dt2,ctx.start.getLine(),ctx.start.getCharPositionInLine());
         }
         return null;
     }
@@ -372,10 +443,10 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             String op = ctx.addOp(i-1).getText();
             switch (op) {
                 case "+":
-                    result = result.arithmetic(other, "+");
+                    result = result.arithmetic(other, "+",ctx.start.getLine(),ctx.start.getCharPositionInLine());
                     break;
                 case "-":
-                    result = result.arithmetic(other, "-");
+                    result = result.arithmetic(other, "-",ctx.start.getLine(),ctx.start.getCharPositionInLine());
                     break;
             }
         }
@@ -384,6 +455,9 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     }
     @Override
     public Object visitExpr500(ErlangParser.Expr500Context ctx) {
+        if(isGettingExported){
+            return super.visitExpr500(ctx);
+        }
         Datatype result = (Datatype) visitExpr600(ctx.expr600(0));
 
         for (int i = 1; i < ctx.expr600().size() ; i++){
@@ -391,13 +465,13 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             String op = ctx.multOp(i-1).getText();
             switch (op) {
                 case "*":
-                    result = result.arithmetic(other, "*");
+                    result = result.arithmetic(other, "*",ctx.start.getLine(),ctx.start.getCharPositionInLine());
                     break;
                 case "/":
-                    result = result.arithmetic(other, "/");
+                    result = result.arithmetic(other, "/",ctx.start.getLine(),ctx.start.getCharPositionInLine());
                     break;
                 case "rem":
-                    result = result.arithmetic(other, "%");
+                    result = result.arithmetic(other, "%",ctx.start.getLine(),ctx.start.getCharPositionInLine());
                     break;
             }
         }

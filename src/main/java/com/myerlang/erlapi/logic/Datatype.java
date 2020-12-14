@@ -1,7 +1,7 @@
 package com.myerlang.erlapi.logic;
 
-import javax.xml.crypto.Data;
-import java.util.ArrayList;
+import com.myerlang.erlapi.response.ResponseManager;
+import com.myerlang.erlapi.response.StepToJson;
 
 /**
  * Memebers:
@@ -22,6 +22,8 @@ public class Datatype {
 
     private Object value; // 4.0
     private Type type; // DOUBLE
+    private final ResponseManager responseManager = new ResponseManager();
+    private final StepToJson parser = new StepToJson(responseManager);
 
     public Datatype(Object value, Type type) {
         this.value = value;
@@ -49,10 +51,11 @@ public class Datatype {
         return type == Type.VARIABLE_NAME;
     }
 
-    public Datatype equalop(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
+    public Datatype equalop(Datatype other, int row, int col) { // posiblemente se tenga que dar el contexto para los errores
         if (type != other.getType()) {
             System.out.println("Error: Solo se comparan del mismo tipo de dato");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Solo se comparan del mismo tipo de dato");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         Datatype result = new Datatype();
         result.setType(Type.BOOLEAN);
@@ -60,10 +63,11 @@ public class Datatype {
         return result;
     }
 
-    public Datatype greaterThanop(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
+    public Datatype greaterThanop(Datatype other, int row, int col) { // posiblemente se tenga que dar el contexto para los errores
         if (type != other.getType()) {
             System.out.println("Error: Solo se comparan del mismo tipo de dato");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Solo se comparan del mismo tipo de dato");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         Datatype result = new Datatype();
         result.setType(Type.BOOLEAN);
@@ -71,7 +75,8 @@ public class Datatype {
                 result.setValue((Double) value > (Double) other.getValue());
         }else if(type == Type.LIST){
             System.out.println("Error: Comparacion de listas en desarrollo");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Comparacion de listas en desarrollo");
+            throw new ArrayIndexOutOfBoundsException(res);
         }else{ // atoms, strings, boolean(es atom tambien)
                 String v = (String) value;
                 String o = (String) other.getValue();
@@ -85,10 +90,11 @@ public class Datatype {
         }
         return result;
     }
-    public Datatype lessThanop(Datatype other) { // posiblemente se tenga que dar el contexto para los errores
+    public Datatype lessThanop(Datatype other, int row, int col) { // posiblemente se tenga que dar el contexto para los errores
         if (type != other.getType()) {
             System.out.println("Error: Solo se comparan del mismo tipo de dato");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Solo se comparan del mismo tipo de dato");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         Datatype result = new Datatype();
         result.setType(Type.BOOLEAN);
@@ -96,7 +102,8 @@ public class Datatype {
                 result.setValue((Double) value < (Double) other.getValue());
         }else if(type == Type.LIST){
             System.out.println("Error: Comparacion de listas en desarrollo");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Comparacion de listas en desarrollo");
+            throw new ArrayIndexOutOfBoundsException(res);
         }else{ // atoms, strings, boolean(es atom tambien)
                 String v = (String) value;
                 String o = (String) other.getValue();
@@ -110,32 +117,34 @@ public class Datatype {
         return result;
     }
 
-    public Datatype greaterEqualOp(Datatype other){
-        Datatype go = greaterThanop(other);
-        Datatype ep = equalop(other);
+    public Datatype greaterEqualOp(Datatype other, int row, int col){
+        Datatype go = greaterThanop(other,row,col);
+        Datatype ep = equalop(other,row,col);
         Datatype result = new Datatype();
         result.setType(Type.BOOLEAN);
         result.setValue((Boolean)go.value || (Boolean)ep.value);
         return result;
     }
 
-    public Datatype lessEqualOp(Datatype other){
-        Datatype lo = lessThanop(other);
-        Datatype ep = equalop(other);
+    public Datatype lessEqualOp(Datatype other, int row, int col){
+        Datatype lo = lessThanop(other,row,col);
+        Datatype ep = equalop(other,row,col);
         Datatype result = new Datatype();
         result.setType(Type.BOOLEAN);
         result.setValue((Boolean)lo.value || (Boolean)ep.value);
         return result;
     }
 
-    public Datatype arithmetic(Datatype other,String op) { // posiblemente se tenga que dar el contexto para los errores
+    public Datatype arithmetic(Datatype other,String op, int row, int col) { // posiblemente se tenga que dar el contexto para los errores
         if (type != Type.DOUBLE) {
-            System.out.println("Error: Arithmetic operations only with doubles");
-            System.exit(-1);
+            System.out.println("Error: Arithmetic operations only with doubles.");
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Arithmetic operations only with doubles.");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         if (type != other.getType()) {
             System.out.println("Error: Arithmetic operations only with doubles.");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Arithmetic operations only with doubles.");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         Datatype result = new Datatype();
         result.setType(Type.DOUBLE);
@@ -143,7 +152,8 @@ public class Datatype {
         double o =(Double) other.getValue();
         if (op == "/" && o==0.0) {
             System.out.println("Error: Division by 0 is not possible");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+row+" Columna: "+col+" Division by 0 is not possible");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         switch (op){
             case "+":

@@ -8,13 +8,9 @@ package com.myerlang.erlapi.logic; /**
 import com.myerlang.erlapi.gen.ErlangLexer;
 import com.myerlang.erlapi.gen.ErlangParser;
 import com.myerlang.erlapi.response.ResponseManager;
-import com.myerlang.erlapi.response.pojos.StepToJson;
+import com.myerlang.erlapi.response.StepToJson;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import org.springframework.http.ResponseEntity;
-
-import java.io.IOException;
-import java.net.http.HttpResponse;
 
 public class Analysis {
     public static String analyse(String code) {
