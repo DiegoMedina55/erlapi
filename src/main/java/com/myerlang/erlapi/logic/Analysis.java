@@ -7,11 +7,19 @@ package com.myerlang.erlapi.logic; /**
 
 import com.myerlang.erlapi.gen.ErlangLexer;
 import com.myerlang.erlapi.gen.ErlangParser;
+import com.myerlang.erlapi.response.ResponseManager;
+import com.myerlang.erlapi.response.pojos.StepToJson;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.springframework.http.ResponseEntity;
+
+import java.io.IOException;
+import java.net.http.HttpResponse;
 
 public class Analysis {
     public static String analyse(String code) {
+        ResponseManager res = new ResponseManager();
+        StepToJson error = new StepToJson();
         String result = "";
         try{
             ErlangLexer lexer;
@@ -26,9 +34,25 @@ public class Analysis {
             ParseTree tree = parser.forms();
 
             MyVisitor<Object> loader = new MyVisitor<Object>();
-            loader.visit(tree); // result = (String) loader.visit(tree);
+            try{
+                loader.visit(tree); // result = (String) loader.visit(tree);
+            }catch (ArrayIndexOutOfBoundsException e){
+                System.out.println(e.getMessage());
+            }
         } catch (Exception e){
-            System.err.println("Error (Test): " + e);
+            String val;
+            String row;
+            String column;
+            String caterror = e.getMessage();
+            String[] values = caterror.split(" ");
+            row = values[1].split(":")[0];
+            column = values[1].split(":")[1];
+            if(caterror.contains("token")){
+                result = error.ErrorToJson("Linea:"+row+" Columna: "+column+" Error léxico");
+            }
+            else {
+                result = error.ErrorToJson("Linea:"+row+" Columna: "+column+" Error sintáctico");
+            }
         }
         return result;
     }

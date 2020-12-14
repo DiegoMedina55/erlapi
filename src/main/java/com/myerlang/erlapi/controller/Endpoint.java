@@ -23,6 +23,6 @@ public class Endpoint {
 
     @PostMapping("/code-analysis")
     public String postBody(@RequestBody String code) {
-        return Analysis.analyse(code);
+        return "working";//Analysis.analyse(code);
     }
 }

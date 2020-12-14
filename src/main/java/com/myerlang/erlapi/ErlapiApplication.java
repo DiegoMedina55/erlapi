@@ -21,15 +21,16 @@ import java.nio.file.Paths;
 public class ErlapiApplication {
 
 	public static void main(String[] args) {
+		/*
 		String code = "";
 		try {
 			code = readFile(".\\src\\main\\java\\com\\myerlang\\erlapi\\input\\input.txt", StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		Analysis.analyse(code);
+		}*/
+		//Analysis.analyse(code);
 
-		//SpringApplication.run(ErlapiApplication.class, args); // No se ejecuta el framework
+		SpringApplication.run(ErlapiApplication.class, args); // No se ejecuta el framework
 	}
 
 	static String readFile(String path, Charset encoding) throws IOException {

@@ -89,4 +89,7 @@ public class ResponseManager {
                 "steps=" + steps +
                 '}';
     }
+    public ArrayList<Step> getSteps(){
+        return steps;
+    }
 }

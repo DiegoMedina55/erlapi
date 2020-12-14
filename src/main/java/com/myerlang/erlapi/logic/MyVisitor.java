@@ -1,5 +1,5 @@
 package com.myerlang.erlapi.logic;
-/**
+/*
  * Memebers:
  * @Author Gabriel Andres Avendaño Casadiego  gavendanoc@unal.edu.co
  * @Author Santiago Duque Bernal              saduquebe@unal.edu.co
@@ -8,17 +8,20 @@ package com.myerlang.erlapi.logic;
 import com.myerlang.erlapi.gen.ErlangBaseVisitor;
 import com.myerlang.erlapi.gen.ErlangParser;
 import com.myerlang.erlapi.response.ResponseManager;
+import com.myerlang.erlapi.response.pojos.StepToJson;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
+
 
 public class MyVisitor<T> extends ErlangBaseVisitor {
     String startFunctionName = "start";
     Stack <Scope> scopes = new Stack<>();
     HashMap<String, ErlangFunction> functions = new HashMap<>();
     ResponseManager responseManager = new ResponseManager();
-
+    StepToJson parser = new StepToJson(responseManager);
     boolean isAssignToVariable = false;
     boolean isGettingVariableName = false;
     int count = 0;
@@ -42,7 +45,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                     int functionParams = Integer.parseInt(attribContext.expr(i).expr100().expr150(0).
                             expr160(0).expr200(0).expr300(0).expr400(0).expr500(0).
                             expr600(1).getText());
-                    //System.out.println("Funcion: "+functionName+" Con cantidad de parametros: "+functionParams);
+                    System.out.println("Funcion: "+functionName+" Con cantidad de parametros: "+functionParams);
                     if(functions.get(functionName) != null){
                         responseManager.addFunction(functionName,functionParams,true);
                     }
@@ -75,9 +78,11 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
 
         scopes.push(new Scope(startFunctionName)); // primer scope
         ErlangFunctionClause startClause = start.getClausesOfParams(0).get(0);
-        //responseManager.buildStep(scopes,ctx.start.getLine(),"Paso inicial","Paso inicial");
+        responseManager.buildStep(scopes,ctx.start.getLine(),"Paso inicial","Paso inicial");
+
         //System.out.println(responseManager);
         visitClauseBody(startClause.getCtx().clauseBody());
+        System.out.println(parser.StepsToJson());
         return null; // devolver el analisis
     }
 
@@ -162,6 +167,10 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         Datatype value = (Datatype) visitExpr150(ctx.expr150(1)); // 4
         datatype.setType(value.getType());
         datatype.setValue(value.getValue()); // N = 4
+        //Variable dentro de un scope
+        System.out.println("Asignación de variables");
+        responseManager.buildStep(scopes,ctx.start.getLine(),null,null);
+        System.out.println(responseManager);
         return (T) value;
     }
 
@@ -176,6 +185,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
             }
             Variable var = new Variable(variableName);
             this.scopes.peek().getScope().put(variableName, var);
+            var.getDatatype().setValue("");
             return var.getDatatype();
         }
         if (isGettingVariableName) { // For pattern matching
@@ -190,7 +200,7 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
     }
 
     @Override
-    public T visitFunctionCall(ErlangParser.FunctionCallContext ctx) {
+    public T visitFunctionCall(ErlangParser.FunctionCallContext ctx){
         if (ctx.PRINT() != null){
             return print(ctx);
         }
@@ -199,21 +209,28 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         if (erfunction == null) {
             // Error: Funcion no existe
             System.out.println("Error: Funcion no existe");
-            System.exit(-1);
+            String res = parser.ErrorToJson("Linea:"+ctx.start.getLine()+" Columna: "+ctx.start.getCharPositionInLine()+" La función no existe");
+            throw new ArrayIndexOutOfBoundsException(res);
         }
         return patternMatching(ctx, erfunction);
     }
 
     public T print (ErlangParser.FunctionCallContext ctx) {
+        //TODO: valor de retorno
+        Datatype dt;
         if (ctx.expr() != null) {
             Datatype value = (Datatype) visitExpr(ctx.expr());
             //RETORNO DE OPERACIONES LOGICAS
+            dt =new Datatype(value.getValue(), Datatype.Type.STRING);
             System.out.println(value.getValue());
             responseManager.buildStep(scopes,ctx.start.getLine(),String.valueOf(value.getValue()),"null");
             count++;
             System.out.println("instrucción "+count+"  "+responseManager);
         }
-        Datatype dt = new Datatype("ok", Datatype.Type.ATOM);
+        else{
+            dt = new Datatype("ok", Datatype.Type.ATOM);
+        }
+
         return (T) dt;
     }
 
@@ -255,6 +272,14 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
         String functionName = "temporalGuardScope";
         scopes.push(new Scope(functionName));
         // añadiendo los parametros al scope
+        lookupParams(parameterValues, arguments, parameters);
+        Datatype result = (Datatype) visitClauseGuard(clause.getCtx().clauseGuard());
+        Boolean isOK = (Boolean) result.getValue();
+        scopes.pop();
+        return isOK;
+    }
+    //UTILS
+    private void lookupParams(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, int parameters) {
         for (int i = 0; i < parameters; i++){
             if (arguments.get(i).isVariable()){
                 String variableName = arguments.get(i).getValue().toString();
@@ -262,30 +287,41 @@ public class MyVisitor<T> extends ErlangBaseVisitor {
                 scopes.peek().getScope().put(variableName, paramVariable);
             }
         }
-        Datatype result = (Datatype) visitClauseGuard(clause.getCtx().clauseGuard());
-        Boolean isOK = (Boolean) result.getValue();
-        scopes.pop();
-        return isOK;
     }
 
     private T callFunction(ArrayList<Datatype> parameterValues, ArrayList<Datatype> arguments, ErlangFunctionClause clause) {
         int parameters = parameterValues.size();
         scopes.push(new Scope(clause.getFunctionName()));
         // añadiendo los parametros al scope
-        for (int i = 0; i < parameters; i++){
-            if (arguments.get(i).isVariable()){
-                String variableName = arguments.get(i).getValue().toString();
-                Variable paramVariable = new Variable(variableName, true, parameterValues.get(i));
-                scopes.peek().getScope().put(variableName, paramVariable);
-            }
-        }
-        Object result = visitClauseBody(clause.getCtx().clauseBody());
-        //FALLA EL RETORNO
-        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, String.valueOf(result));
+        lookupParams(parameterValues, arguments, parameters);
+        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, null);
+        Datatype result = (Datatype) visitClauseBody(clause.getCtx().clauseBody());
+        //TODO: que es lo que hace el paso bien
+        responseManager.buildStep(scopes, clause.getCtx().start.getLine(), null, result.getValue().toString());
+        System.out.println("LLEGO:  "+result);
         System.out.println(responseManager);
         scopes.pop();
         //RETORNO Y OTRO PASO
         return (T) result;
+    }
+
+    @Override
+    public Object visitClauseBody(ErlangParser.ClauseBodyContext ctx) throws NullPointerException{
+        return visitExprs(ctx.exprs());
+    }
+
+    @Override
+    public T visitExprs(ErlangParser.ExprsContext ctx) {
+        try {
+            for (int i = 0; i < ctx.expr().size() - 1; i++) {
+                visitExpr(ctx.expr(i));
+            }
+            return (T) visitExpr(ctx.expr(ctx.expr().size() - 1));
+        }
+        catch (NullPointerException e){
+            System.out.println("Efe");
+        }
+    return null;
     }
 
     private ArrayList<Datatype> matchClauseWithCallingCtx(ArrayList<Datatype> parameterValues, ErlangFunctionClause clause){

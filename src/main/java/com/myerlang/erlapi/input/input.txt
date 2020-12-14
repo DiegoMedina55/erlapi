@@ -1,10 +1,15 @@
-% -export(start/0, suma/1, resta/65, mult/2, division/0).
+% -export(start/0, sumsumsum/1, comparingNumbers/65, comparingStrings/2).
 
-comparingAtoms() ->
+comparingAtomsñ) ->
     io:fwrite(atom == atom),
     io:fwrite(atom1 == atom).
 
-comparingNumbers() ->
+comparingNumbers(X,I) ->
+    A = 10,
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
+    io:fwrite(1 == 1.0),
     io:fwrite(1 == 1.0),
     io:fwrite(1 == 1.1).
 
@@ -21,5 +26,8 @@ start()->
     io:fwrite( 10 - 3),
     io:fwrite( 10 * 3),
     io:fwrite( 10 / 3),
-    comparingNumbers(),
+    comparingNumbers(100, 3),
+    sumar(10,6),
+    X = sum(3,4),
+    io:fwrite(X),
     io:fwrite( 10 rem 3).
