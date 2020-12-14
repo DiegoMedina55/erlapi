@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/demo")
+@CrossOrigin(origins = "*")
 public class Endpoint {
     // create GET endpoint to serve demo data at /demo/data
     @GetMapping(value = "/data")

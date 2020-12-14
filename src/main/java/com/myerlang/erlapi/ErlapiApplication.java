@@ -36,16 +36,6 @@ public class ErlapiApplication {
 		SpringApplication.run(ErlapiApplication.class, args); // No se ejecuta el framework
 	}
 
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/greeting-javaconfig").allowedOrigins("http://localhost:9000");
-			}
-		};
-	}
-
 	static String readFile(String path, Charset encoding) throws IOException {
 		System.out.println(Paths.get(path).toAbsolutePath());
 		byte[] encoded = Files.readAllBytes(Paths.get(path));
